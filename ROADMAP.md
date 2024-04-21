@@ -4,10 +4,10 @@ This roadmap outlines the planned features and development milestones for the Mo
 
 ## Phase 1: Project Setup and Basic Functionality
 
-- [x] Task 1 - Movie Input and Preferences
+- [ ] Task 1 - Movie Input and Preferences
   - Users can input movies they have watched along with ratings.
   - Users can specify favorite genres, actors, or directors.
-- [x] Task 2 - Movie Recommendation Algorithm
+- [ ] Task 2 - Movie Recommendation Algorithm
   - Basic recommendation algorithm developed.
   - Recommended movies displayed with details.
   
