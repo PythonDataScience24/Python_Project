@@ -1,6 +1,6 @@
 # Python_Project: Move Recommendation System
 
-This project is desgined to help discover new movies tailored to the users preferences. Users can input movies they have watched along with rating, and specify their favorite genres, actors or directors to personalize their recommendations. 
+This project is designed to help discover new movies tailored to the users preferences. Users can input movies they have watched along with rating, and specify their favorite genres, actors or directors to personalize their recommendations. 
 
 ## Features 
 - **Movie Input Preferences**: Users can input movies they have watched and rate them. Moreover, they can specify favorite genre, etc.
