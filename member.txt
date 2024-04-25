@@ -1,0 +1,7 @@
+Project: Movie Recommendation
+
+Group members:
+Fabian Gribi
+Matthias Rubin
+Marcine Bessire
+Jacob Riina
