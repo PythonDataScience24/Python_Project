@@ -1,6 +1,7 @@
 from dash import Dash, dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 app = Dash(__name__)
 
@@ -15,12 +16,34 @@ actors = ['Tim Robbins', 'Morgan Freeman', 'Marlon Brando', 'Al Pacino', 'Christ
 directors = ['Frank Darabont', 'Francis Ford Coppola', 'Christopher Nolan', 'Quentin Tarantino', 'Robert Zemeckis']
 genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy']
 
+def query_sparql(search_value):
+
+    sparql = SPARQLWrapper('https://query.wikidata.org/sparql')
+    query = """
+    SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+        ?item ?label "%s"@en.
+        ?item (wdt:P31/wdt:P279*) wd:Q11424.  # Ensure the item is an instance of a film
+        ?article schema:about ?item.
+        ?article schema:inLanguage "en".
+        ?article schema:isPartOf <https://en.wikipedia.org/>.
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    }
+    """ % search_value
+
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    return results
+    
+
 app.layout = html.Div([
     html.Div([
         html.Label('Input some movies you watched:'),
-        dcc.Dropdown(id='movies-dropdown', options=[{'label': movie, 'value': movie} for movie in movies], multi=True),
         html.Br(),
-        html.Div(id='ratings-input-container')
+        dcc.Dropdown(id='movies-dropdown', multi=True, placeholder='Choose movies...'),
+        html.Br(),
+        html.Div(id='ratings-input-container'),
     ], style={'padding': 10, 'flex': 1}),
 
     html.Div([
@@ -49,6 +72,24 @@ def update_ratings_input(selected_movies):
         html.Label(f'Rating for {movie}:'),
         dcc.Input(id={'type': 'rating-input', 'index': movie}, type='number', min=1, max=5, step=0.1)
     ]) for movie in selected_movies]
+
+@app.callback(
+    Output('movies-dropdown', 'options'),
+    Input('movies-dropdown', 'search_value'),
+    State('movies-dropdown', 'value')
+)
+
+def update_dropdown_options(search_value, selected_movies):
+    if not search_value:
+        raise PreventUpdate
+    else:   
+        current_values = selected_movies if selected_movies else []
+        results = query_sparql(search_value)
+        movie_titles = [result['itemLabel']['value'] for result in results['results']['bindings']]
+        movie_titles.extend(current_values)
+    
+    return [{'label': title, 'value': title} for title in movie_titles] 
+
 
 @app.callback(
     Output('output-message', 'children'),
