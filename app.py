@@ -69,19 +69,24 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
         
         # Print selected options for testing
         print("Movies you watched:", selected_movies)
-        print("/nRatings:", ratings)
-        print("/nFavorite Genres:", selected_genres)
-        print("/nFavorite Actors:", selected_actors)
-        print("/nFavorite Directors:", selected_directors)
+        print("\nRatings:", ratings)
+        print("\nFavorite Genres:", selected_genres)
+        print("\nFavorite Actors:", selected_actors)
+        print("\nFavorite Directors:", selected_directors)
         
         # Return a confirmation message
         return html.Div([
             html.Label("You have selected:"),
-            html.Label(f"/nMovies: {', '.join(selected_movies)}"),
-            html.Label(f"/nRatings: {', '.join(str(rating) for rating in ratings)}"),
-            html.Label(f"/nGenres: {', '.join(selected_genres) if selected_genres else 'None'}"),
-            html.Label(f"/nActors: {', '.join(selected_actors) if selected_actors else 'None'}"),
-            html.Label(f"/nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),
+            html.Br(),
+            html.Label(f"\nMovies: {', '.join(selected_movies)}"),
+            html.Br(),
+            html.Label(f"\nRatings: {', '.join(str(rating) for rating in ratings)}"),
+            html.Br(),
+            html.Label(f"\nGenres: {', '.join(selected_genres) if selected_genres else 'None'}"),
+            html.Br(),
+            html.Label(f"\nActors: {', '.join(selected_actors) if selected_actors else 'None'}"),
+            html.Br(),
+            html.Label(f"\nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),
         ])
 
     raise PreventUpdate
