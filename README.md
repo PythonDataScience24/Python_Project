@@ -11,4 +11,10 @@ This project is designed to help discover new movies tailored to the users prefe
 
 This project aims to enhance movie-watching experience by offering personalized recommendations and insights into the users' movie preferences. 
 
+## Usage
 
+Make sure to check dependencies before beginning: `pip install -r requirements.txt`  
+
+This project functions as a Dash app. To get started, simply run `python3 app.py` and visit 127.0.0.1:8050 or localhost:8050 in a web browser.  
+
+For the first week, we created the inital app and its search functionality. It currently consists of several dropdowns, which allow you to search for and select favorite movies, actors, directors, and genres, and a submission button. Once submitted, these data are currently displayed as text output on the page, but will later be fed into the movie recommendation algorithm (Deliverable week 2) and the results visualized below on the app (Deliverable week 3).  
