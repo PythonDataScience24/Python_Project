@@ -17,7 +17,15 @@ directors = ['Frank Darabont', 'Francis Ford Coppola', 'Christopher Nolan', 'Que
 genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy']
 
 def query_sparql(search_value):
+    """
+    Queries Wikidata to search for movies based on the given search value.
 
+    Args:
+        search_value (str): The value to search for in Wikidata.
+
+    Returns:
+        dict: JSON response containing search results.
+    """
     sparql = SPARQLWrapper('https://query.wikidata.org/sparql')
     query = """
     SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
@@ -66,6 +74,15 @@ app.layout = html.Div([
     [Input('movies-dropdown', 'value')]
 )
 def update_ratings_input(selected_movies):
+    """
+    Updates the ratings input based on selected movies.
+
+    Args:
+        selected_movies (list): List of selected movies.
+
+    Returns:
+        list: List of HTML div elements containing rating inputs.
+    """
     if not selected_movies:
         return []
     return [html.Div([
@@ -78,8 +95,17 @@ def update_ratings_input(selected_movies):
     Input('movies-dropdown', 'search_value'),
     State('movies-dropdown', 'value')
 )
-
 def update_dropdown_options(search_value, selected_movies):
+    """
+    Updates dropdown options based on the search value.
+
+    Args:
+        search_value (str): The search value entered by the user.
+        selected_movies (list): List of currently selected movies.
+
+    Returns:
+        list: List of dropdown options.
+    """
     if not search_value:
         raise PreventUpdate
     else:   
@@ -101,6 +127,20 @@ def update_dropdown_options(search_value, selected_movies):
      State('genres-dropdown', 'value')]
 )
 def display_output(n_clicks, selected_movies, ratings, selected_actors, selected_directors, selected_genres):
+    """
+    Displays the selected movie information.
+
+    Args:
+        n_clicks (int): Number of button clicks.
+        selected_movies (list): List of selected movies.
+        ratings (list): List of movie ratings.
+        selected_actors (list): List of selected actors.
+        selected_directors (list): List of selected directors.
+        selected_genres (list): List of selected genres.
+
+    Returns:
+        list: List of HTML elements representing selected movie information.
+    """
     if n_clicks > 0:
         if not selected_movies:
             return "Please select at least one movie."
