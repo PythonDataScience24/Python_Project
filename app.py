@@ -1,19 +1,25 @@
+import os
+import subprocess
+import pandas as pd
 from dash import Dash, dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
 from SPARQLWrapper import SPARQLWrapper, JSON
 
+
+# Get the required data and load them into dataframes
+if not os.path.exists("./data") or not any(os.listdir("./data")):
+    subprocess.run(["python", "./Scripts/get_data.py"])
+iter_names = pd.read_csv("./data/name.basics.tsv.gz", sep = "\t", iterator=True, chunksize=10000, usecols=lambda x: x not in ['birthYear', 'deathYear'])
+df_actors = pd.concat([chunk[chunk['primaryProfession'].str.contains('actor|actress', case=False, na=False)] for chunk in iter_names])
+df_title = pd.read_csv("./data/title.basics.tsv.gz", sep = "\t", usecols=lambda x: x not in ['runtimeMinutes', 'startYear', 'endYear', 'isAdult'])
+iter_names = pd.read_csv("./data/name.basics.tsv.gz", sep = "\t", iterator=True, chunksize=10000, usecols=lambda x: x not in ['birthYear', 'deathYear'])
+df_directors = pd.concat([chunk[chunk['primaryProfession'].str.contains('director', case=False, na=False)] for chunk in iter_names])
+
+
 app = Dash(__name__)
 
-# Sample movie data for dropdowns
-"""
-    We need to find a way here to grab this data from a website or database and store it in dataframes that the program AKA the user has then
-    access to, when she/he interacts with the program.
-"""
 
-movies = ['The Shawshank Redemption', 'The Godfather', 'The Dark Knight', 'Pulp Fiction', 'Forrest Gump']
-actors = ['Tim Robbins', 'Morgan Freeman', 'Marlon Brando', 'Al Pacino', 'Christian Bale', 'Heath Ledger', 'John Travolta', 'Uma Thurman', 'Tom Hanks', 'Robin Wright']
-directors = ['Frank Darabont', 'Francis Ford Coppola', 'Christopher Nolan', 'Quentin Tarantino', 'Robert Zemeckis']
 genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy']
 
 def query_sparql(search_value):
@@ -49,7 +55,9 @@ app.layout = html.Div([
     html.Div([
         html.Label('Input some movies you watched:'),
         html.Br(),
-        dcc.Dropdown(id='movies-dropdown', multi=True, placeholder='Choose movies...'),
+        dcc.Dropdown(id='movies-dropdown',
+                     options=[{'label' : i, 'value' : i} for i in df_title['primaryTitle'].head()],
+                      multi=True, placeholder='Choose movies...'),
         html.Br(),
         html.Div(id='ratings-input-container'),
     ], style={'padding': 10, 'flex': 1}),
@@ -59,10 +67,10 @@ app.layout = html.Div([
         dcc.Dropdown(id='genres-dropdown', options=[{'label': genre, 'value': genre} for genre in genres], multi=True),
         html.Br(),
         html.Label('Select your favorite actors:'),
-        dcc.Dropdown(id='actors-dropdown', options=[{'label': actor, 'value': actor} for actor in actors], multi=True),
+        dcc.Dropdown(id='actors-dropdown', options=[{'label': name, 'value': name} for name in df_actors['primaryName'].head()], multi=True),
         html.Br(),
         html.Label('Select your favorite directors:'),
-        dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director} for director in directors], multi=True),
+        dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director} for director in df_directors['primaryName'].head()], multi=True),
     ], style={'padding': 10, 'flex': 1}),
 
     html.Button('Submit', id='submit-button', n_clicks=0),
