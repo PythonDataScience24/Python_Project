@@ -9,10 +9,10 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 
 # Get the required data and load them into dataframes
 if not os.path.exists("./data") or not any(os.listdir("./data")):
-    subprocess.run(["python", "./Scripts/get_data.py"])
+    subprocess.run(["python3", "./Scripts/get_data.py"])
 df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")
 df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
+#df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 
 app = Dash(__name__)
@@ -68,7 +68,7 @@ app.layout = html.Div([
         dcc.Dropdown(id='actors-dropdown', options=[{'label': name, 'value': name} for name in df_actors['primaryName'].head(10)], multi=True),
         html.Br(),
         html.Label('Select your favorite directors:'),
-        dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director} for director in df_directors['primaryName'].head(10)], multi=True),
+        #dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director} for director in df_directors['primaryName'].head(10)], multi=True),
     ], style={'padding': 10, 'flex': 1}),
 
     html.Button('Submit', id='submit-button', n_clicks=0),
@@ -161,6 +161,7 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
         print("\nFavorite Actors:", selected_actors)
         print("\nFavorite Directors:", selected_directors)
         
+        
         # Return a confirmation message
         return html.Div([
             html.Label("You have selected:"),
@@ -174,6 +175,8 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
             html.Label(f"\nActors: {', '.join(selected_actors) if selected_actors else 'None'}"),
             html.Br(),
             html.Label(f"\nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),
+            html.Br(),
+
         ])
 
     raise PreventUpdate
