@@ -71,7 +71,7 @@ def input_preferences():
     return movies, genres, actors, directors
 
 
-dataPath = '/Users/arvidberg/Downloads/hw2_handout/data'
+dataPath = '/Users/marcinebessire/Library/Mobile Documents/com~apple~CloudDocs/Documents/Master UniBe/2nd semester 2024/Advanced Python/Project/data/directors.tsv'
 
 movies_df = pd.read_csv(dataPath + '/movies.tsv', sep='\t')
 # drop colunn Unnamed: 0
@@ -79,9 +79,6 @@ movies_df = movies_df.drop(columns=['Unnamed: 0'])
 
 actors_df = pd.read_csv(dataPath + '/actors.tsv', sep='\t')
 directors_df = pd.read_csv(dataPath + '/directors.tsv', sep='\t')
-
-   
-
 
 
 
