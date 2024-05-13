@@ -56,7 +56,11 @@ for item in actors:
 #reinitialize them as movie objects in a list 
 more_movies_objects=[movie(item) for item in np.unique(more_movies)]
 
-filtered_df=df_movies[df_movies['tconst'].isin(more_movies)]
+filtered_movies_df=df_movies[df_movies['tconst'].isin(more_movies)]
 original_titles=filtered_df['originalTitle'].tolist()
+filtered_actors_df=df_actors[df_actors['nconst'].isin([actor.id for actor in actors])]
 
 #we can now repeat this process ad infinitum to expand the network of actors and movies.
+
+filtered_movies_df #use these dataframes to search for recommended movies with Marcine's algorithm
+filtered_actors_df
