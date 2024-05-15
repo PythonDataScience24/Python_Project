@@ -47,14 +47,15 @@ def query_sparql(search_value):
     results = sparql.query().convert()
 
     return results
-    
+
 
 app.layout = html.Div([
     html.Div([
         html.Label('Input some movies you watched:'),
         html.Br(),
         dcc.Dropdown(id='movies-dropdown',
-                     options=[{'label' : i, 'value' : i} for i in df_movies['primaryTitle'].head(10)],
+                     options=[{'label' : i, 'value' : i}
+                              for i in df_movies['primaryTitle'].head(10)],
                       multi=True, placeholder='Choose movies...'),
         html.Br(),
         html.Div(id='ratings-input-container'),
@@ -62,13 +63,16 @@ app.layout = html.Div([
 
     html.Div([
         html.Label('Select your favorite genres:'),
-        dcc.Dropdown(id='genres-dropdown', options=[{'label': genre, 'value': genre} for genre in genres], multi=True),
+        dcc.Dropdown(id='genres-dropdown', options=[{'label': genre, 'value': genre}
+                                                    for genre in genres], multi=True),
         html.Br(),
         html.Label('Select your favorite actors:'),
-        dcc.Dropdown(id='actors-dropdown', options=[{'label': name, 'value': name} for name in df_actors['primaryName'].head(10)], multi=True),
+        dcc.Dropdown(id='actors-dropdown', options=[{'label': name, 'value': name}
+                        for name in df_actors['primaryName'].head(10)], multi=True),
         html.Br(),
         html.Label('Select your favorite directors:'),
-        #dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director} for director in df_directors['primaryName'].head(10)], multi=True),
+        #dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director}
+        #for director in df_directors['primaryName'].head(10)], multi=True),
     ], style={'padding': 10, 'flex': 1}),
 
     html.Button('Submit', id='submit-button', n_clicks=0),
@@ -93,7 +97,8 @@ def update_ratings_input(selected_movies):
         return []
     return [html.Div([
         html.Label(f'Rating for {movie}:'),
-        dcc.Input(id={'type': 'rating-input', 'index': movie}, type='number', min=1, max=5, step=0.1)
+        dcc.Input(id={'type': 'rating-input', 'index': movie}, type='number',
+                  min=1, max=5, step=0.1)
     ]) for movie in selected_movies]
 
 @app.callback(
@@ -114,13 +119,11 @@ def update_dropdown_options(search_value, selected_movies):
     """
     if not search_value:
         raise PreventUpdate
-    else:   
-        current_values = selected_movies if selected_movies else []
-        results = query_sparql(search_value)
-        movie_titles = [result['itemLabel']['value'] for result in results['results']['bindings']]
-        movie_titles.extend(current_values)
-    
-    return [{'label': title, 'value': title} for title in movie_titles] 
+    current_values = selected_movies if selected_movies else []
+    results = query_sparql(search_value)
+    movie_titles = [result['itemLabel']['value'] for result in results['results']['bindings']]
+    movie_titles.extend(current_values)
+    return [{'label': title, 'value': title} for title in movie_titles]
 
 
 @app.callback(
@@ -132,7 +135,8 @@ def update_dropdown_options(search_value, selected_movies):
      State('directors-dropdown', 'value'),
      State('genres-dropdown', 'value')]
 )
-def display_output(n_clicks, selected_movies, ratings, selected_actors, selected_directors, selected_genres):
+def display_output(n_clicks, selected_movies, ratings, selected_actors, #pylint: disable=too-many-arguments
+                   selected_directors, selected_genres):
     """
     Displays the selected movie information.
 
@@ -150,18 +154,14 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
     if n_clicks > 0:
         if not selected_movies:
             return "Please select at least one movie."
-        
         if not ratings:
             return "Please enter ratings for all selected movies."
-        
         # Print selected options for testing
         print("Movies you watched:", selected_movies)
         print("\nRatings:", ratings)
         print("\nFavorite Genres:", selected_genres)
         print("\nFavorite Actors:", selected_actors)
         print("\nFavorite Directors:", selected_directors)
-        
-        
         # Return a confirmation message
         return html.Div([
             html.Label("You have selected:"),
@@ -174,7 +174,7 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
             html.Br(),
             html.Label(f"\nActors: {', '.join(selected_actors) if selected_actors else 'None'}"),
             html.Br(),
-            html.Label(f"\nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),
+            html.Label(f"\nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),   #pylint: disable=line-too-long
             html.Br(),
 
         ])
@@ -183,4 +183,3 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, selected
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-            
