@@ -69,78 +69,56 @@ def update_ratings_input(selected_movies):
 
 def search_term(search_value: str, df: pd.DataFrame, column: str) -> list:
     "Searches dataframe in specified column for term. Returns first ten results as list"
-    search_results = df[df[column].str.contains(search_value, na = False, regex= False, case = False)][column].head(10).to_list()
+    search_results = df[df[column] == search_value][column].to_list()
     return search_results
+
+def update_dropdown_options(search_value, selected_items, df, column_name):
+    """
+    Updates dropdown options based on the search value.
+
+    Args:
+        search_value (str): The search value entered by the user.
+        selected_items (list): List of currently selected items.
+        df (DataFrame): DataFrame to search in.
+        column_name (str): Column name to search in the DataFrame.
+
+    Returns:
+        list: List of dropdown options.
+    """
+    if not search_value:
+        raise PreventUpdate
+    
+    current_values = selected_items if selected_items else []
+    items = search_term(search_value, df, column_name)
+    items.extend(current_values)
+    return [{'label': item, 'value': item} for item in items]
 
 @app.callback(
     Output('movies-dropdown', 'options'),
     Input('movies-dropdown', 'search_value'),
-    State('movies-dropdown', 'value'), 
+    State('movies-dropdown', 'value'),
     prevent_initial_callback=True
 )
-def update_dropdown_options(search_value, selected_movies):
-    """
-    Updates dropdown options based on the search value.
-
-    Args:
-        search_value (str): The search value entered by the user.
-        selected_movies (list): List of currently selected movies.
-
-    Returns:
-        list: List of dropdown options.
-    """
-    if not search_value:
-        raise PreventUpdate
-    current_values = selected_movies if selected_movies else []
-    movie_titles =  search_term(search_value, df_movies, 'primaryTitle')
-    movie_titles.extend(current_values) 
-    return [{'label': title, 'value': title} for title in movie_titles] 
+def update_movies_dropdown_options(search_value, selected_movies):
+    return update_dropdown_options(search_value, selected_movies, df_movies, 'primaryTitle')
 
 @app.callback(
     Output('actors-dropdown', 'options'),
     Input('actors-dropdown', 'search_value'),
-    State('actors-dropdown', 'value'), prevent_initial_callback=True
+    State('actors-dropdown', 'value'),
+    prevent_initial_callback=True
 )
-def update_dropdown_options(search_value, selected_actors):
-    """
-    Updates dropdown options based on the search value.
-
-    Args:
-        search_value (str): The search value entered by the user.
-        selected_actors (list): List of currently selected actors.
-
-    Returns:
-        list: List of dropdown options.
-    """
-    if not search_value:
-        raise PreventUpdate 
-    current_values = selected_actors if selected_actors else []
-    actors =  search_term(search_value, df_actors, 'primaryName')
-    actors.extend(current_values)
-    return [{'label': title, 'value': title} for title in actors] 
+def update_actors_dropdown_options(search_value, selected_actors):
+    return update_dropdown_options(search_value, selected_actors, df_actors, 'primaryName')
 
 @app.callback(
     Output('directors-dropdown', 'options'),
     Input('directors-dropdown', 'search_value'),
-    State('directors-dropdown', 'value'), prevent_initial_callback=True
+    State('directors-dropdown', 'value'),
+    prevent_initial_callback=True
 )
-def update_dropdown_options(search_value, selected_directors):
-    """
-    Updates dropdown options based on the search value.
-
-    Args:
-        search_value (str): The search value entered by the user.
-        selected_directors (list): List of currently selected directors.
-
-    Returns:
-        list: List of dropdown options.
-    """
-    if not search_value:
-        raise PreventUpdate
-    current_values = selected_directors if selected_directors else []
-    directors =  search_term(search_value, df_directors, 'primaryName')
-    directors.extend(current_values)
-    return [{'label': title, 'value': title} for title in directors] 
+def update_directors_dropdown_options(search_value, selected_directors):
+    return update_dropdown_options(search_value, selected_directors, df_directors, 'primaryName')
 
 @app.callback(
     Output('output-message', 'children'),
