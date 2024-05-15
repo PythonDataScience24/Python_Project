@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 from Scripts.get_data import download_data
-from dash import Dash, dcc, html, Input, Output, State
+from Scripts.movie_recommendation_v2 import get_network
+from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
 
@@ -41,6 +42,7 @@ app.layout = html.Div([
         dcc.Dropdown(id='directors-dropdown', options=[], multi=True),
     ], style={'padding': 10, 'flex': 1}),
 
+    html.Br(),
     html.Button('Submit', id='submit-button', n_clicks=0),
     html.Div(id='output-message', style={'padding': 10}),
 ], style={'display': 'flex', 'flexDirection': 'row'})
@@ -150,29 +152,9 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, #pylint:
             return "Please select at least one movie."
         if not ratings:
             return "Please enter ratings for all selected movies."
-        # Print selected options for testing
-        print("Movies you watched:", selected_movies)
-        print("\nRatings:", ratings)
-        print("\nFavorite Genres:", selected_genres)
-        print("\nFavorite Actors:", selected_actors)
-        print("\nFavorite Directors:", selected_directors)
-        # Return a confirmation message
-        return html.Div([
-            html.Label("You have selected:"),
-            html.Br(),
-            html.Label(f"\nMovies: {', '.join(selected_movies)}"),
-            html.Br(),
-            html.Label(f"\nRatings: {', '.join(str(rating) for rating in ratings)}"),
-            html.Br(),
-            html.Label(f"\nGenres: {', '.join(selected_genres) if selected_genres else 'None'}"),
-            html.Br(),
-            html.Label(f"\nActors: {', '.join(selected_actors) if selected_actors else 'None'}"),
-            html.Br(),
-            html.Label(f"\nDirectors: {', '.join(selected_directors) if selected_directors else 'None'}"),   #pylint: disable=line-too-long
-            html.Br(),
-
-        ])
-
+        filtered_df, _ = get_network(selected_movies, df_movies, df_actors)
+        filtered_df = filtered_df.head(10)
+        return dash_table.DataTable(filtered_df.to_dict('records'), [{"name": i, "id": i} for i in filtered_df.columns])
     raise PreventUpdate
 
 if __name__ == '__main__':

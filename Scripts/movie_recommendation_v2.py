@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
-df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
-df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
+# df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
+# df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
+# df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 class movie:
     
@@ -36,36 +36,34 @@ class actor:
         related_movies = search_df[search_df['nconst']==self.id]['knownForTitles']
         return related_movies.str.split(',').reset_index(drop=True)
     
+def get_network(movie_titles, df_movies, df_actors):
 
-#example input
-movie_title='Everything Everywhere All at Once'
-movie_data=df_movies[df_movies['primaryTitle']==movie_title]
+    # Initialize movie objects
+    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,1]) for movie_title in movie_titles]
 
-#initializing the movie object
-app_submission=movie(movie_data.iloc[0,1])
-#searching for actors involved with the movie and making a list
-actors=[]
-for identifier in app_submission.search_actors(df_actors)['nconst']:
-    actor_object=actor(identifier)
-    actors.append(actor_object)
+    #searching for actors involved with the movie and making a list
+    actors=[]
+    for mv in movies:
+        for identifier in mv.search_actors(df_actors)['nconst']:
+            actors.append(identifier)
+    actors = [actor(identifier) for identifier in np.unique(actors)]
 
-#searching for movies that those actors are involved with
-more_movies=[]
-for item in actors:
-    more_movies+=item.search_movies(df_actors)[0]
-#reinitialize them as movie objects in a list 
-more_movies_objects=[movie(item) for item in np.unique(more_movies)]
+    #searching for movies that those actors are involved with
+    more_movies=[]
+    for item in actors:
+        more_movies+=item.search_movies(df_actors)[0]
+    #reinitialize them as movie objects in a list 
+    more_movies_objects=[movie(item) for item in np.unique(more_movies)]
 
-filtered_movies_df=df_movies[df_movies['tconst'].isin(more_movies)]
-original_titles=filtered_movies_df['originalTitle'].tolist()
-filtered_actors_df=df_actors[df_actors['nconst'].isin([actor.id for actor in actors])]
+    filtered_movies_df=df_movies[df_movies['tconst'].isin([mv.id for mv in more_movies_objects])]
+    filtered_actors_df=df_actors[df_actors['nconst'].isin([actor.id for actor in actors])]
 
-#we can now repeat this process ad infinitum to expand the network of actors and movies.
+    #we can now repeat this process ad infinitum to expand the network of actors and movies.
 
-filtered_movies_df #use these dataframes to search for recommended movies with Marcine's algorithm
-filtered_actors_df
+    #use these dataframes to search for recommended movies with Marcine's algorithm
+    return  filtered_movies_df, filtered_actors_df
 
-def recommend_movies(preferences):
+def recommend_movies(preferences, df_movies, df_actors, df_directors):
     """
     Function to recommend movies based on user preferences.
     """
