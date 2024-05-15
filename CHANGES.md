@@ -1,6 +1,6 @@
 # Improve your code using abstraction and decomposition
 
-In the our code of the "get_data.py" script we have applied abstraction and decomposition to improve its structure, readability and maintainability
+In our code of the "get_data.py" script we have applied abstraction and decomposition to improve its structure, readability and maintainability.
 
 ## Abstraction
 **1. "download_file" Function:**
@@ -25,3 +25,28 @@ In the our code of the "get_data.py" script we have applied abstraction and deco
 
 **4. Variable Names:**
 - Meaningful variable names are used throughout the code, enhancing readability and making it easier to understand the purpose of each variable.
+
+## Improving the code of app.py
+Here are exapmples how we used abstraction and decomposition in our main "app.py" program:
+
+## Abstraction:
+**1. Class Abstraction:**
+
+-   The Movie and Actor classes abstract movie and actor objects, respectively. They encapsulate related data and functionality, such as searching for actors in a movie or movies associated with an actor. These classes hide implementation details, allowing the main code to interact with them through a simple interface.
+
+**2. Function Abstraction:**
+
+-   Functions like search_term() and update_dropdown_options() encapsulate specific tasks, making the code more modular and reusable. They abstract the underlying logic, providing a clear and concise interface for interacting with the functionality they provide.
+
+**3. Dash Callback Functions:**
+
+-   Callback functions abstract the logic to update UI elements based on user interactions. For example, functions like update_movies_dropdown_options() and display_output() handle interaction between dropdown components and dynamically update their options or display output accordingly. They encapsulate the logic for updating UI elements, promoting code organization and maintainability.
+
+## Decomposition:
+**1. Modularization:**
+
+-   The code is divided into smaller, manageable modules or functions, each responsible for a specific task. For example, the download_data() function in the Scripts.get_data module handles the downloading of data, while our other functions handle UI updates, data processing, and user interaction.
+
+**2. Function Decomposition:**
+
+-   Functions are decomposed into smaller, more focused functions to achieve specific tasks. For example, the update_dropdown_options() function abstracts the logic to update dropdown options based on search values, which is reused for different dropdowns. By decomposing functionality into smaller functions, the code becomes more modular and easier to understand, maintain, and extend.
