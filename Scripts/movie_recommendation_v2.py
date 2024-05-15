@@ -4,7 +4,7 @@ import networkx as nx
 
 df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
 df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-#df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
+df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 class movie:
     
@@ -57,7 +57,7 @@ for item in actors:
 more_movies_objects=[movie(item) for item in np.unique(more_movies)]
 
 filtered_movies_df=df_movies[df_movies['tconst'].isin(more_movies)]
-original_titles=filtered_df['originalTitle'].tolist()
+original_titles=filtered_movies_df['originalTitle'].tolist()
 filtered_actors_df=df_actors[df_actors['nconst'].isin([actor.id for actor in actors])]
 
 #we can now repeat this process ad infinitum to expand the network of actors and movies.
@@ -75,21 +75,21 @@ def recommend_movies(preferences):
     directors = preferences[3]
 
     # Filter movies based on genres
-    genre_movies = movies_df[movies_df['genres'].isin(genres)]
+    genre_movies = df_movies[df_movies['genres'].isin(genres)]
 
     # Filter movies based on actors
-    preffered_actor_rows = actors_df[actors_df['primaryName'].isin(actors)]
+    preffered_actor_rows = df_actors[df_actors['primaryName'].isin(actors)]
     # get the movies from column knownForTitles and split them into a list
     preffered_movies = preffered_actor_rows['knownForTitles'].str.split(',').tolist()
     # get all movies from movies_df that are in the list of preffered_movies
-    actor_movies = movies_df[movies_df['tconst'].isin([item for sublist in preffered_movies for item in sublist])]
+    actor_movies = df_movies[df_movies['tconst'].isin([item for sublist in preffered_movies for item in sublist])]
 
     # Filter movies based on directors
-    director_movies = directors_df[directors_df['primaryName'].isin(directors)]
+    director_movies = df_directors[df_directors['primaryName'].isin(directors)]
     # get the movies from column knownForTitles and split them into a list
     director_movies = director_movies['knownForTitles'].str.split(',').tolist()
-    # get all movies from movies_df that are in the list of director_movies
-    director_movies = movies_df[movies_df['tconst'].isin([item for sublist in director_movies for item in sublist])]
+    # get all movies from df_movies that are in the list of director_movies
+    director_movies = df_movies[df_movies['tconst'].isin([item for sublist in director_movies for item in sublist])]
 
 
     # Combine filtered movies
@@ -105,7 +105,7 @@ def recommend_movies(preferences):
     preferred_movies = preferences[0]
     # get the movies from movies_df that are in the preferred_movies
     # TODO or originalTitle?
-    rated_movies = movies_df[movies_df['primaryTitle'].isin(preferred_movies.keys())]
+    rated_movies = df_movies[df_movies['primaryTitle'].isin(preferred_movies.keys())]
     # add the ratings to the rated_movies
     rated_movies['rating'] = rated_movies['primaryTitle'].map(preferred_movies)
 
@@ -114,11 +114,11 @@ def recommend_movies(preferences):
     ### Above part is good, below needs further work
 
 
-
+"""
     # TODO split on knownForTitles and then merge with movies_df probably or implement by hand instead of using libs
     # Merge additional information (like actors and directors) into recommended_movies so that each movie has corresponding attributes that can be used for content-based filtering.
-    recommended_movies = recommended_movies.merge(directors_df, on='knownForTitles', how='left')
-    recommended_movies = recommended_movies.merge(actors_df, on='knownForTitles', how='left')
+    recommended_movies = recommended_movies.merge(df_directors, on='knownForTitles', how='left')
+    recommended_movies = recommended_movies.merge(df_actors, on='knownForTitles', how='left')
 
     # Convert genres to a list if it's a string of genres separated by commas
     recommended_movies['genres'] = recommended_movies['genres'].apply(lambda x: x.split(','))
@@ -146,3 +146,4 @@ def recommend_movies(preferences):
 
 user_preferences = input_preferences()
 recommend_movies(user_preferences)
+"""
