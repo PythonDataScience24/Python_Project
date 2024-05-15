@@ -238,4 +238,15 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, #pylint:
 if __name__ == '__main__':
     app.run_server(debug=True)
 ```
+## PYLINT output after fixing the issus in app.py
+```plaintext
+************* Module app
+app.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 
+app.py:12:4: W1510: 'subprocess.run' used without explicitly defining the value for 'check'. (subprocess-run-check)
+
+app.py:34:12: C0209: Formatting a regular string which could be a f-string (consider-using-f-string)
+
+------------------------------------------------------------------
+Your code has been rated at 9.38/10 (previous run: 9.17/10, +0.21)
+```
