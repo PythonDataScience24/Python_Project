@@ -1,61 +1,29 @@
 import os
-import subprocess
 import pandas as pd
+from Scripts.get_data import download_data
 from dash import Dash, dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
-from SPARQLWrapper import SPARQLWrapper, JSON
 
 
 # Get the required data and load them into dataframes
 if not os.path.exists("./data") or not any(os.listdir("./data")):
-    subprocess.run(["python3", "./Scripts/get_data.py"])
+    download_data()
 df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")
 df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-#df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
+df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 
 app = Dash(__name__)
 
-
 genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy']
-
-def query_sparql(search_value):
-    """
-    Queries Wikidata to search for movies based on the given search value.
-
-    Args:
-        search_value (str): The value to search for in Wikidata.
-
-    Returns:
-        dict: JSON response containing search results.
-    """
-    sparql = SPARQLWrapper('https://query.wikidata.org/sparql')
-    query = """
-    SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
-        ?item ?label "%s"@en.
-        ?item (wdt:P31/wdt:P279*) wd:Q11424.  # Ensure the item is an instance of a film
-        ?article schema:about ?item.
-        ?article schema:inLanguage "en".
-        ?article schema:isPartOf <https://en.wikipedia.org/>.
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-    }
-    """ % search_value
-
-    sparql.setQuery(query)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-
-    return results
-
 
 app.layout = html.Div([
     html.Div([
         html.Label('Input some movies you watched:'),
         html.Br(),
         dcc.Dropdown(id='movies-dropdown',
-                     options=[{'label' : i, 'value' : i}
-                              for i in df_movies['primaryTitle'].head(10)],
+                     options=[],
                       multi=True, placeholder='Choose movies...'),
         html.Br(),
         html.Div(id='ratings-input-container'),
@@ -67,12 +35,10 @@ app.layout = html.Div([
                                                     for genre in genres], multi=True),
         html.Br(),
         html.Label('Select your favorite actors:'),
-        dcc.Dropdown(id='actors-dropdown', options=[{'label': name, 'value': name}
-                        for name in df_actors['primaryName'].head(10)], multi=True),
+        dcc.Dropdown(id='actors-dropdown', options=[], multi=True),
         html.Br(),
         html.Label('Select your favorite directors:'),
-        #dcc.Dropdown(id='directors-dropdown', options=[{'label': director, 'value': director}
-        #for director in df_directors['primaryName'].head(10)], multi=True),
+        dcc.Dropdown(id='directors-dropdown', options=[], multi=True),
     ], style={'padding': 10, 'flex': 1}),
 
     html.Button('Submit', id='submit-button', n_clicks=0),
@@ -101,10 +67,16 @@ def update_ratings_input(selected_movies):
                   min=1, max=5, step=0.1)
     ]) for movie in selected_movies]
 
+def search_term(search_value: str, df: pd.DataFrame, column: str) -> list:
+    "Searches dataframe in specified column for term. Returns first ten results as list"
+    search_results = df[df[column].str.contains(search_value, na = False, regex= False, case = False)][column].head(10).to_list()
+    return search_results
+
 @app.callback(
     Output('movies-dropdown', 'options'),
     Input('movies-dropdown', 'search_value'),
-    State('movies-dropdown', 'value')
+    State('movies-dropdown', 'value'), 
+    prevent_initial_callback=True
 )
 def update_dropdown_options(search_value, selected_movies):
     """
@@ -120,11 +92,55 @@ def update_dropdown_options(search_value, selected_movies):
     if not search_value:
         raise PreventUpdate
     current_values = selected_movies if selected_movies else []
-    results = query_sparql(search_value)
-    movie_titles = [result['itemLabel']['value'] for result in results['results']['bindings']]
-    movie_titles.extend(current_values)
-    return [{'label': title, 'value': title} for title in movie_titles]
+    movie_titles =  search_term(search_value, df_movies, 'primaryTitle')
+    movie_titles.extend(current_values) 
+    return [{'label': title, 'value': title} for title in movie_titles] 
 
+@app.callback(
+    Output('actors-dropdown', 'options'),
+    Input('actors-dropdown', 'search_value'),
+    State('actors-dropdown', 'value'), prevent_initial_callback=True
+)
+def update_dropdown_options(search_value, selected_actors):
+    """
+    Updates dropdown options based on the search value.
+
+    Args:
+        search_value (str): The search value entered by the user.
+        selected_actors (list): List of currently selected actors.
+
+    Returns:
+        list: List of dropdown options.
+    """
+    if not search_value:
+        raise PreventUpdate 
+    current_values = selected_actors if selected_actors else []
+    actors =  search_term(search_value, df_actors, 'primaryName')
+    actors.extend(current_values)
+    return [{'label': title, 'value': title} for title in actors] 
+
+@app.callback(
+    Output('directors-dropdown', 'options'),
+    Input('directors-dropdown', 'search_value'),
+    State('directors-dropdown', 'value'), prevent_initial_callback=True
+)
+def update_dropdown_options(search_value, selected_directors):
+    """
+    Updates dropdown options based on the search value.
+
+    Args:
+        search_value (str): The search value entered by the user.
+        selected_directors (list): List of currently selected directors.
+
+    Returns:
+        list: List of dropdown options.
+    """
+    if not search_value:
+        raise PreventUpdate
+    current_values = selected_directors if selected_directors else []
+    directors =  search_term(search_value, df_directors, 'primaryName')
+    directors.extend(current_values)
+    return [{'label': title, 'value': title} for title in directors] 
 
 @app.callback(
     Output('output-message', 'children'),

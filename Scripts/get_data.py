@@ -20,13 +20,10 @@ def filter_by_term(df: pd.DataFrame, col: str, terms: Tuple[str, ...] | List[str
     terms = '|'.join(terms)
     return df[df[col].str.contains(terms, case = False, na= False)]
 
-
-if __name__ == "__main__":
+def download_data():
 
     URL_NAME = "https://datasets.imdbws.com/name.basics.tsv.gz"
     PATH_NAME = "./data/name.basics.tsv.gz"
-    URL_CREW = "https://datasets.imdbws.com/title.crew.tsv.gz"
-    PATH_CREW = "./data/title.crew.tsv.gz"
     URL_TITLE = "https://datasets.imdbws.com/title.basics.tsv.gz"
     PATH_TITLE = "./data/title.basics.tsv.gz"
 
@@ -34,31 +31,22 @@ if __name__ == "__main__":
     PATH_MOVIES = "./data/movies.tsv.gz"
     PATH_ACTORS = "./data/actors.tsv.gz"
 
-
     download_file(URL_NAME, PATH_NAME)
-    download_file(URL_CREW, PATH_CREW)
     download_file(URL_TITLE, PATH_TITLE)
-
-
     df_name = pd.read_csv(PATH_NAME, sep = "\t", usecols=lambda x: x not in ['birthYear', 'deathYear'])
-    df_crew = pd.read_csv(PATH_CREW, sep = "\t", usecols=lambda x: x != 'writers')
     df_title = pd.read_csv(PATH_TITLE, sep = "\t", usecols=lambda x: x not in ['runtimeMinutes', 'startYear', 'endYear', 'isAdult'])
 
     # Filter by actors and directors, filter out titles that are not movies
     df_actors = filter_by_term(df_name, 'primaryProfession', ['actor', 'actress'])
     df_directors = filter_by_term(df_name, 'primaryProfession', ['director'])
     df_movies = filter_by_term(df_title, 'titleType', ['movie', 'short', 'tvMovie'])
-    directors_split = df_crew['directors'].str.split(',')
-    df_crew = pd.DataFrame({'tconst': df_crew['tconst'].repeat(directors_split.str.len()),
-                         'nconst': directors_split.explode()})
-    df_directors = pd.merge(df_crew, df_directors, on = 'nconst', how = 'left')
-    df_directors['knownForTitles'] = df_directors.groupby('nconst')['tconst'].transform(lambda x: ','.join(x))
-    df_directors.drop_duplicates(subset=['nconst'], inplace=True)
     
-    df_movies.to_csv(PATH_MOVIES, sep = '\t', compression='gzip')
-    df_actors.to_csv(PATH_ACTORS, sep = '\t', compression='gzip')
-    df_directors.to_csv(PATH_DIRECTORS, sep = '\t', compression='gzip')
+    df_movies.to_csv(PATH_MOVIES, sep = '\t', compression='gzip', index=False)
+    df_actors.to_csv(PATH_ACTORS, sep = '\t', compression='gzip', index=False)
+    df_directors.to_csv(PATH_DIRECTORS, sep = '\t', compression='gzip', index=False)
 
     os.remove(PATH_NAME)
-    os.remove(PATH_CREW)
     os.remove(PATH_TITLE)
+
+if __name__ == "__main__":
+    download_data()
