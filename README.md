@@ -1,4 +1,4 @@
-# Python_Project: Move Recommendation System
+# Python_Project: Movie Recommendation System
 
 This project is designed to help discover new movies tailored to the users preferences. Users can input movies they have watched along with rating, and specify their favorite genres, actors or directors to personalize their recommendations. 
 
@@ -19,4 +19,4 @@ This project functions as a Dash app. To get started, simply run `python3 app.py
 
 For the first week, we created the inital app and its search functionality. It currently consists of several dropdowns, which allow you to search for and select favorite movies, actors, directors, and genres, and a submission button. Once submitted, these data are currently displayed as text output on the page, but will later be fed into the movie recommendation algorithm (needs to be completed) and the results visualized below on the app. In addition, the basic movie recommendation algorithm was developed (in `Scripts/movie_recommendationv2.py`), which, in the future, we will call from inside the app with user data.  
 
-Additional development included `get_data.py`, intended to get data downloaded via IMDb. Hence, the input of the user will be used to make recommendations based on this data set.
+In the second week, additional development included `get_data.py`, intended to download the relevant database via IMDb. Hence, the input of the user will be used to make recommendations based on this data set. This data download proceeds automatically upon launching the app and creates a data folder (these files should not be hosted on github, so ./data is in .gitignore); it may take a minute to download, please be patient! We also created movie recommendation scripts to be invoked by the app to recommend movies based on the input data. 
