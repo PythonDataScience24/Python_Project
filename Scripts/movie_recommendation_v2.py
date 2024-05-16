@@ -39,7 +39,7 @@ class actor:
 def get_network(movie_titles, df_movies, df_actors):
 
     # Initialize movie objects
-    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,1]) for movie_title in movie_titles]
+    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,0]) for movie_title in movie_titles]
 
     #searching for actors involved with the movie and making a list
     actors=[]
