@@ -6,13 +6,17 @@ from typing import List, Tuple
 def download_file(url: str, save_path : str):
     """Downloads file from url locally to the specified path """
 
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-
-    with requests.get(url, stream=True) as response:
-        response.raise_for_status()
-        with open(save_path, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
+    try:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        with requests.get(url, stream=True) as response:
+            response.raise_for_status()
+            with open(save_path, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+    except requests.RequestException as e:
+        print(f"Error downloading {url}: {e}")
+    except OSError as e:
+        print(f"Error saving {save_path}: {e}")
 
 def filter_by_term(df: pd.DataFrame, col: str, terms: Tuple[str, ...] | List[str]) -> pd.DataFrame:
     """Returns a new DataFrame containing only rows where col contains the desired terms"""
