@@ -6,14 +6,12 @@ from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
 
-
 # Get the required data and load them into dataframes
 if not os.path.exists("./data") or not any(os.listdir("./data")):
     download_data()
-df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")
-df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
-
+df_actors = pd.read_csv("./data/actors.tsv.gz", sep="\t")
+df_movies = pd.read_csv("./data/movies.tsv.gz", sep="\t")
+df_directors = pd.read_csv("./data/directors.tsv.gz", sep="\t")
 
 app = Dash(__name__)
 
@@ -25,7 +23,7 @@ app.layout = html.Div([
         html.Br(),
         dcc.Dropdown(id='movies-dropdown',
                      options=[],
-                      multi=True, placeholder='Choose movies...'),
+                     multi=True, placeholder='Choose movies...'),
         html.Br(),
         html.Div(id='ratings-input-container'),
     ], style={'padding': 10, 'flex': 1}),
@@ -44,7 +42,11 @@ app.layout = html.Div([
 
     html.Br(),
     html.Button('Submit', id='submit-button', n_clicks=0),
-    html.Div(id='output-message', style={'padding': 10}),
+    dcc.Loading(
+        id="loading",
+        type="default",
+        children=html.Div(id='output-message', style={'padding': 10})
+    ),
 ], style={'display': 'flex', 'flexDirection': 'row'})
 
 @app.callback(
@@ -131,7 +133,7 @@ def update_directors_dropdown_options(search_value, selected_directors):
      State('directors-dropdown', 'value'),
      State('genres-dropdown', 'value')]
 )
-def display_output(n_clicks, selected_movies, ratings, selected_actors, #pylint: disable=too-many-arguments
+def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylint: disable=too-many-arguments
                    selected_directors, selected_genres):
     """
     Displays the selected movie information.
@@ -159,3 +161,4 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors, #pylint:
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
