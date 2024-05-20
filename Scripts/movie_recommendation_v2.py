@@ -1,10 +1,12 @@
-import pandas as pd
-import numpy as np
 import networkx as nx
+import numpy as np
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import MultiLabelBinarizer
 
-# df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
-# df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-# df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
+df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
+df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
+df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 class movie:
     
@@ -39,7 +41,7 @@ class actor:
 def get_network(movie_titles, df_movies, df_actors):
 
     # Initialize movie objects
-    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,0]) for movie_title in movie_titles]
+    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,1]) for movie_title in movie_titles]
 
     #searching for actors involved with the movie and making a list
     actors=[]
@@ -61,87 +63,94 @@ def get_network(movie_titles, df_movies, df_actors):
     #we can now repeat this process ad infinitum to expand the network of actors and movies.
 
     #use these dataframes to search for recommended movies with Marcine's algorithm
-    return  filtered_movies_df, filtered_actors_df
+    return filtered_movies_df, filtered_actors_df
 
-def recommend_movies(preferences, df_movies, df_actors, df_directors):
+def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=3):
     """
     Function to recommend movies based on user preferences.
     """
-    # Filter movies based on genres, actors and directors
-    genres = preferences[1]
-    actors = preferences[2]
-    directors = preferences[3]
 
-    # Filter movies based on genres
-    genre_movies = df_movies[df_movies['genres'].isin(genres)]
-
-    # Filter movies based on actors
-    preffered_actor_rows = df_actors[df_actors['primaryName'].isin(actors)]
-    # get the movies from column knownForTitles and split them into a list
-    preffered_movies = preffered_actor_rows['knownForTitles'].str.split(',').tolist()
-    # get all movies from movies_df that are in the list of preffered_movies
-    actor_movies = df_movies[df_movies['tconst'].isin([item for sublist in preffered_movies for item in sublist])]
-
-    # Filter movies based on directors
-    director_movies = df_directors[df_directors['primaryName'].isin(directors)]
-    # get the movies from column knownForTitles and split them into a list
-    director_movies = director_movies['knownForTitles'].str.split(',').tolist()
-    # get all movies from df_movies that are in the list of director_movies
-    director_movies = df_movies[df_movies['tconst'].isin([item for sublist in director_movies for item in sublist])]
-
-
-    # Combine filtered movies
-    recommended_movies = pd.concat([genre_movies, actor_movies, director_movies])
-
-    # Remove duplicates
-    recommended_movies = recommended_movies.drop_duplicates()
-
-    # # Sort movies by rating
-    # recommended_movies = recommended_movies.sort_values(by='rating', ascending=False)
-
-    # preferred_movies is dict with movie names and ratings
-    preferred_movies = preferences[0]
-    # get the movies from movies_df that are in the preferred_movies
-    # TODO or originalTitle?
-    rated_movies = df_movies[df_movies['primaryTitle'].isin(preferred_movies.keys())]
-    # add the ratings to the rated_movies
-    rated_movies['rating'] = rated_movies['primaryTitle'].map(preferred_movies)
-
-
-
-    ### Above part is good, below needs further work
-
-
-"""
-    # TODO split on knownForTitles and then merge with movies_df probably or implement by hand instead of using libs
-    # Merge additional information (like actors and directors) into recommended_movies so that each movie has corresponding attributes that can be used for content-based filtering.
-    recommended_movies = recommended_movies.merge(df_directors, on='knownForTitles', how='left')
-    recommended_movies = recommended_movies.merge(df_actors, on='knownForTitles', how='left')
-
-    # Convert genres to a list if it's a string of genres separated by commas
-    recommended_movies['genres'] = recommended_movies['genres'].apply(lambda x: x.split(','))
-
-    # One-hot encode genres
+    # Initialize MultiLabelBinarizer
     mlb = MultiLabelBinarizer()
-    genres_encoded = mlb.fit_transform(recommended_movies['genres'])
 
-    # Add new features back to df_B
-    recommended_movies = recommended_movies.join(pd.DataFrame(genres_encoded, columns=mlb.classes_, index=recommended_movies.index))
+    #### GENRES ####
+    # Convert genres to a list of genres
+    filtered_movies_list = filtered_movies_df['genres'].apply(lambda x: x.split(','))
 
-    # Calculate similarity between all movies
-    similarity_matrix = cosine_similarity(genres_encoded)
+    # One-hot encode the genres
+    genres_encoded = mlb.fit_transform(filtered_movies_list)
+    selected_genres_encoded = mlb.transform([selected_genres])
 
-    # Only consider movies you've rated
-    rated_indices = rated_movies['tconst'].isin(recommended_movies['tconst'])
-    weighted_scores = similarity_matrix[rated_indices].T.dot(rated_movies['rating'])
+    # Compute the cosine similarity matrix between the filtered movies and selected genres
+    cosine_sims_genres = cosine_similarity(genres_encoded, selected_genres_encoded).flatten()
+    
+
+    ### ACTORS ###
+    # Convert actors to a list of actors
+    # for movie in filtered_movies_df: get identifier of movie, search for actors in filtered_actors_df
+    # get the actors' names and append to a list
+    actors_list = []
+    for idx, row in filtered_movies_df.iterrows():
+        tconst = row['tconst']
+        actors = filtered_actors_df[filtered_actors_df['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
+        actors_list.append(actors.tolist())
+    
+
+    # One-hot encode the actors
+    actors_encoded = mlb.fit_transform(actors_list)
+    selected_actors_encoded = mlb.transform([selected_actors])
+
+    # Compute the cosine similarity matrix between the filtered movies and selected actors
+    cosine_sims_actors = cosine_similarity(actors_encoded, selected_actors_encoded).flatten()
+
+
+    ### DIRECORS ###
+
+    directors_list = []
+    for idx, row in filtered_movies_df.iterrows():
+        tconst = row['tconst']
+        directors = df_directors[df_directors['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
+        # check directors for nan values and drop nan values
+        directors = directors.dropna()
+        if len(directors) == 0:
+            continue
+        directors_list.append(directors.tolist())
+    
+    
+    
+    # One-hot encode the directors
+    directors_encoded = mlb.fit_transform(directors_list)
+    selected_directors_encoded = mlb.transform([selected_directors])
+
+    # Compute the cosine similarity matrix between the filtered movies and selected directors
+    cosine_sims_directors = cosine_similarity(directors_encoded, selected_directors_encoded).flatten()
+
+
+
+
+    # Combine the cosine similarities for genres and actors
+    cosine_sims = (1/3) * cosine_sims_genres + (1/3) * cosine_sims_actors + (1/3) * cosine_sims_directors
 
 
 
 
 
-    # Return top 5 movies
-    return recommended_movies.head(5)
+    # Get the indices of the most similar movies
+    similar_movie_indices = np.argsort(cosine_sims)[::-1]
+    
+    # Select the top recommended movie
+    recommended_movies = filtered_movies_df.iloc[similar_movie_indices[:n]]
+    
+    # # Print the recommended movie
+    # print("Recommended Movie:", recommended_movie['primaryTitle'])
+    return recommended_movies
+    
 
-user_preferences = input_preferences()
-recommend_movies(user_preferences)
-"""
+
+### TESTING ###  -- comment out directors part in function if takes too long
+
+# filtered_movies_df, filtered_actors_df  = get_network(['The Shawshank Redemption'], df_movies, df_actors)
+# selected_genres = ['Adventure', 'Fantasy', 'Comedy']
+# selected_actors = ['Tom Hanks', 'Morgan Freeman', 'Brad Pitt', 'Leonardo DiCaprio']
+# selected_directors = ['Christopher Nolan', 'Steven Spielberg', 'Quentin Tarantino']
+# recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres=selec
