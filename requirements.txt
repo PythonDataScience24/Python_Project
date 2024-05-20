@@ -4,3 +4,4 @@ pandas >= 2.2.1
 #csv
 SPARQLWrapper >= 2.0.0
 scikit-learn
+dash-bootstrap-components
