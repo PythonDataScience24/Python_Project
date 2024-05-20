@@ -2,5 +2,5 @@ dash >= 2.16.1
 requests >= 2.31.0
 pandas >= 2.2.1
 #csv
-#sklearn otherwise known as scikit-learn
 SPARQLWrapper >= 2.0.0
+scikit-learn

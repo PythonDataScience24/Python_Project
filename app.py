@@ -155,11 +155,11 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylin
         if not ratings:
             return "Please enter ratings for all selected movies."
         filtered_df, filtered_actors_df = get_network(selected_movies, df_movies, df_actors)
-        recommended_movies = recommend_movies(filtered_df, filtered_actors_df, list(selected_genres), list(selected_actors), list(selected_directors), n=3)
+        recommended_movies = recommend_movies(filtered_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=3)
         # filtered_df = filtered_df.head(10)
         # return dash_table.DataTable(filtered_df.to_dict('records'), [{"name": i, "id": i} for i in filtered_df.columns])
         
-        return "", dash_table.DataTable(recommended_movies.to_dict('records'), [{"primaryName": i} for i in recommended_movies.columns])
+        return dash_table.DataTable(recommended_movies.to_dict('records'), [{"name" : i, "id" : i} for i in recommended_movies.columns])
     raise PreventUpdate
 
 if __name__ == '__main__':

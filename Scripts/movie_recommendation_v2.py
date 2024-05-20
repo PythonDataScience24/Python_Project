@@ -41,7 +41,7 @@ class actor:
 def get_network(movie_titles, df_movies, df_actors):
 
     # Initialize movie objects
-    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,1]) for movie_title in movie_titles]
+    movies = [movie(df_movies[df_movies['primaryTitle']==movie_title].iloc[0,0]) for movie_title in movie_titles]
 
     #searching for actors involved with the movie and making a list
     actors=[]
@@ -88,7 +88,7 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
     # Convert actors to a list of actors
     # for movie in filtered_movies_df: get identifier of movie, search for actors in filtered_actors_df
     # get the actors' names and append to a list
-    if len(selected_actors) != 0:
+    if selected_actors:
 
         actors_list = []
         for idx, row in filtered_movies_df.iterrows():
@@ -107,7 +107,7 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
 
     ### DIRECORS ###
 
-    if len(selected_directors) != 0:
+    if selected_directors:
         directors_list = []
         for idx, row in filtered_movies_df.iterrows():
             tconst = row['tconst']
@@ -132,12 +132,12 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
 
     # Combine the cosine similarities for genres and actors
 
-    if len(selected_actors) == 0:
-        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_directors
-    elif len(selected_directors) == 0:
-        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_actors
-    elif len(selected_actors) == 0 and len(selected_directors) == 0:
+    if not selected_actors and not selected_directors:
         cosine_sims = cosine_sims_genres
+    elif not selected_directors:
+        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_actors
+    elif not selected_actors:
+        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_directors
     else:
         cosine_sims = (1/3) * cosine_sims_genres + (1/3) * cosine_sims_actors + (1/3) * cosine_sims_directors
 
