@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from Scripts.get_data import download_data
-from Scripts.movie_recommendation_v2 import get_network
+from Scripts.movie_recommendation_v2 import get_network, recommend_movies
 from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
