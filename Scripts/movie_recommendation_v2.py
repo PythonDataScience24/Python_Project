@@ -69,7 +69,6 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
     """
     Function to recommend movies based on user preferences.
     """
-
     # Initialize MultiLabelBinarizer
     mlb = MultiLabelBinarizer()
 
@@ -89,47 +88,58 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
     # Convert actors to a list of actors
     # for movie in filtered_movies_df: get identifier of movie, search for actors in filtered_actors_df
     # get the actors' names and append to a list
-    actors_list = []
-    for idx, row in filtered_movies_df.iterrows():
-        tconst = row['tconst']
-        actors = filtered_actors_df[filtered_actors_df['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
-        actors_list.append(actors.tolist())
-    
+    if len(selected_actors) != 0:
 
-    # One-hot encode the actors
-    actors_encoded = mlb.fit_transform(actors_list)
-    selected_actors_encoded = mlb.transform([selected_actors])
+        actors_list = []
+        for idx, row in filtered_movies_df.iterrows():
+            tconst = row['tconst']
+            actors = filtered_actors_df[filtered_actors_df['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
+            actors_list.append(actors.tolist())
+        
 
-    # Compute the cosine similarity matrix between the filtered movies and selected actors
-    cosine_sims_actors = cosine_similarity(actors_encoded, selected_actors_encoded).flatten()
+        # One-hot encode the actors
+        actors_encoded = mlb.fit_transform(actors_list)
+        selected_actors_encoded = mlb.transform([selected_actors])
+
+        # Compute the cosine similarity matrix between the filtered movies and selected actors
+        cosine_sims_actors = cosine_similarity(actors_encoded, selected_actors_encoded).flatten()
 
 
     ### DIRECORS ###
 
-    directors_list = []
-    for idx, row in filtered_movies_df.iterrows():
-        tconst = row['tconst']
-        directors = df_directors[df_directors['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
-        # check directors for nan values and drop nan values
-        directors = directors.dropna()
-        if len(directors) == 0:
-            continue
-        directors_list.append(directors.tolist())
-    
-    
-    
-    # One-hot encode the directors
-    directors_encoded = mlb.fit_transform(directors_list)
-    selected_directors_encoded = mlb.transform([selected_directors])
+    if len(selected_directors) != 0:
+        directors_list = []
+        for idx, row in filtered_movies_df.iterrows():
+            tconst = row['tconst']
+            directors = df_directors[df_directors['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
+            # check directors for nan values and drop nan values
+            directors = directors.dropna()
+            if len(directors) == 0:
+                continue
+            directors_list.append(directors.tolist())
+        
+        
+        
+        # One-hot encode the directors
+        directors_encoded = mlb.fit_transform(directors_list)
+        selected_directors_encoded = mlb.transform([selected_directors])
 
-    # Compute the cosine similarity matrix between the filtered movies and selected directors
-    cosine_sims_directors = cosine_similarity(directors_encoded, selected_directors_encoded).flatten()
+        # Compute the cosine similarity matrix between the filtered movies and selected directors
+        cosine_sims_directors = cosine_similarity(directors_encoded, selected_directors_encoded).flatten()
 
 
 
 
     # Combine the cosine similarities for genres and actors
-    cosine_sims = (1/3) * cosine_sims_genres + (1/3) * cosine_sims_actors + (1/3) * cosine_sims_directors
+
+    if len(selected_actors) == 0:
+        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_directors
+    elif len(selected_directors) == 0:
+        cosine_sims = 0.5 * cosine_sims_genres + 0.5 * cosine_sims_actors
+    elif len(selected_actors) == 0 and len(selected_directors) == 0:
+        cosine_sims = cosine_sims_genres
+    else:
+        cosine_sims = (1/3) * cosine_sims_genres + (1/3) * cosine_sims_actors + (1/3) * cosine_sims_directors
 
 
 
@@ -148,9 +158,8 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
 
 
 ### TESTING ###  -- comment out directors part in function if takes too long
-
 # filtered_movies_df, filtered_actors_df  = get_network(['The Shawshank Redemption'], df_movies, df_actors)
 # selected_genres = ['Adventure', 'Fantasy', 'Comedy']
 # selected_actors = ['Tom Hanks', 'Morgan Freeman', 'Brad Pitt', 'Leonardo DiCaprio']
 # selected_directors = ['Christopher Nolan', 'Steven Spielberg', 'Quentin Tarantino']
-# recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres=selec
+# recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres=selected_genres, selected_actors=selected_actors, selected_directors=selected_directors)
