@@ -6,6 +6,7 @@ from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
 import dash_bootstrap_components as dbc
+import plotly.express as px  # Import plotly.express for visualization
 
 # Get the required data and load them into dataframes
 if not os.path.exists("./data") or not any(os.listdir("./data")):
@@ -199,11 +200,19 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylin
         if not ratings:
             return "Please enter ratings for all selected movies."
         filtered_df, filtered_actors_df = get_network(selected_movies, df_movies, df_actors)
-        recommended_movies = recommend_movies(filtered_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=3)
+        recommended_movies = recommend_movies(filtered_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=10)
         # filtered_df = filtered_df.head(10)
         # return dash_table.DataTable(filtered_df.to_dict('records'), [{"name": i, "id": i} for i in filtered_df.columns])
         
-        return dash_table.DataTable(recommended_movies.to_dict('records'), [{"name" : i, "id" : i} for i in recommended_movies.columns])
+        # Creating a bar chart using plotly express
+        fig = px.bar(
+            recommended_movies,
+            x='primaryTitle',
+            y=recommended_movies.index,  # Using index as y value
+            labels={'primaryTitle': 'Movie Title', 'index': 'Index in recommended_movies'},
+            title='Recommended Movies'
+        )
+        return dcc.Graph(figure=fig)
     raise PreventUpdate
 
 def toggle_modal(n1, n2, is_open):
@@ -222,7 +231,7 @@ app.callback(
 app.callback(
     Output("other-modal", "is_open"),
     [Input("add-other-button", "n_clicks"),
-     Input("other-submission-button", "n_clicks")],
+    Input("other-submission-button", "n_clicks")],
     State("other-modal", "is_open"),
 )(toggle_modal)
 
