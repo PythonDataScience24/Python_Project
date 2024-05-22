@@ -7,13 +7,13 @@ This roadmap outlines the planned features and development milestones for the Mo
 - [x] Task 1 - Movie Input and Preferences
   - Users can input movies they have watched along with ratings.
   - Users can specify favorite genres, actors, or directors.
-- [ ] Task 2 - Movie Recommendation Algorithm
+- [x] Task 2 - Movie Recommendation Algorithm
   - Basic recommendation algorithm developed.
   - Recommended movies displayed with details.
   
 ## Phase 2: Enhancing User Experience
 
-- [ ] Task 3 - Data Visualization and User Trend Analysis
+- [x] Task 3 - Data Visualization and User Trend Analysis
   - Implement visualizations of movie data (genre, actor, director).
   - Users can analyze trends in their movie preferences.
   
