@@ -7,6 +7,7 @@ from dash.exceptions import PreventUpdate
 from dash.dependencies import ALL
 import dash_bootstrap_components as dbc
 import plotly.express as px  # Import plotly.express for visualization
+import plotly.graph_objects as go  # Import plotly.graph_objects for pie chart
 
 # Get the required data and load them into dataframes
 if not os.path.exists("./data") or not any(os.listdir("./data")):
@@ -17,7 +18,7 @@ df_directors = pd.read_csv("./data/directors.tsv.gz", sep="\t")
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 
-genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy']
+genres = ['Action', 'Drama', 'Horror', 'Comedy', 'Romance', 'Fantasy', 'Sci-Fi', 'Crime', 'Sport', 'Mystery', 'Adventure', 'Thriller', 'Biography']
 
 MOVIES = [
     dbc.CardHeader(html.H4("My movies")),
@@ -205,14 +206,27 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylin
         # return dash_table.DataTable(filtered_df.to_dict('records'), [{"name": i, "id": i} for i in filtered_df.columns])
         
         # Creating a bar chart using plotly express
-        fig = px.bar(
+        fig_bar = px.bar(
             recommended_movies,
             x='primaryTitle',
             y=recommended_movies.index,  # Using index as y value
-            labels={'primaryTitle': 'Movie Title', 'index': 'Index in recommended_movies'},
+            labels={'primaryTitle': 'Movie Title', 'index': 'Recommendation Rank'},
             title='Recommended Movies'
         )
-        return dcc.Graph(figure=fig)
+        
+        # Prepare data for pie chart
+        genres_list = recommended_movies['genres'].str.split(',').explode()
+        genre_counts = genres_list.value_counts().reset_index()
+        genre_counts.columns = ['Genre', 'Count']
+        
+        # Creating a pie chart using plotly.graph_objects
+        fig_pie = go.Figure(data=[go.Pie(labels=genre_counts['Genre'], values=genre_counts['Count'], hole=.3)])
+        fig_pie.update_layout(title_text='Genre Distribution of Recommended Movies')
+        
+        return html.Div([
+            dcc.Graph(figure=fig_bar),
+            dcc.Graph(figure=fig_pie)
+        ])
     raise PreventUpdate
 
 def toggle_modal(n1, n2, is_open):
