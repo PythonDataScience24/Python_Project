@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MultiLabelBinarizer
+import time
 
 df_actors = pd.read_csv("./data/actors.tsv.gz", sep = "\t")                                                             
 df_movies = pd.read_csv("./data/movies.tsv.gz", sep = "\t")
-df_directors = pd.read_csv("./data/directors.tsv.gz", sep = "\t")
 
 class movie:
     
@@ -64,7 +64,8 @@ def get_network(movie_titles, df_movies, df_actors):
     #use these dataframes to search for recommended movies with Marcine's algorithm
     return filtered_movies_df, filtered_actors_df
 
-def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=3):
+def recommend_movies(filtered_movies_df, filtered_actors_df, 
+                     df_directors, selected_genres, selected_actors, selected_directors, n=3):
     """
     Function to recommend movies based on user preferences.
     """
@@ -81,7 +82,6 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
 
     # Compute the cosine similarity matrix between the filtered movies and selected genres
     cosine_sims_genres = cosine_similarity(genres_encoded, selected_genres_encoded).flatten()
-    
 
     ### ACTORS ###
     # Convert actors to a list of actors
@@ -95,7 +95,6 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
             actors = filtered_actors_df[filtered_actors_df['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
             actors_list.append(actors.tolist())
         
-
         # One-hot encode the actors
         actors_encoded = mlb.fit_transform(actors_list)
         selected_actors_encoded = mlb.transform([selected_actors])
@@ -107,20 +106,16 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
     ### DIRECORS ###
 
     if selected_directors:
-        directors_list = []
-        for idx, row in filtered_movies_df.iterrows():
-            tconst = row['tconst']
-            directors = df_directors[df_directors['knownForTitles'].apply(lambda x: tconst in x)]['primaryName']
-            # check directors for nan values and drop nan values
-            directors = directors.dropna()
-            if len(directors) == 0:
-                continue
-            directors_list.append(directors.tolist())
-        
+        directors_exploded = df_directors.explode('knownForTitles')
+        merged_df = filtered_movies_df.merge(directors_exploded,
+                                        left_on='tconst',
+                                        right_on='knownForTitles',
+                                        how='left')
+        directors_series = merged_df.fillna(value = '').groupby('tconst')['primaryName'].apply(list)
         
         
         # One-hot encode the directors
-        directors_encoded = mlb.fit_transform(directors_list)
+        directors_encoded = mlb.fit_transform(directors_series)
         selected_directors_encoded = mlb.transform([selected_directors])
 
         # Compute the cosine similarity matrix between the filtered movies and selected directors
@@ -152,7 +147,7 @@ def recommend_movies(filtered_movies_df, filtered_actors_df, selected_genres, se
     
     # # Print the recommended movie
     # print("Recommended Movie:", recommended_movie['primaryTitle'])
-    return recommended_movies
+    return recommended_movies, cosine_sims[similar_movie_indices][:n]
     
 
 

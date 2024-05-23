@@ -15,6 +15,7 @@ if not os.path.exists("./data") or not any(os.listdir("./data")):
 df_actors = pd.read_csv("./data/actors.tsv.gz", sep="\t")
 df_movies = pd.read_csv("./data/movies.tsv.gz", sep="\t")
 df_directors = pd.read_csv("./data/directors.tsv.gz", sep="\t")
+df_directors['knownForTitles'] = df_directors['knownForTitles'].str.split(",")
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 
@@ -201,7 +202,8 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylin
         if not ratings:
             return "Please enter ratings for all selected movies."
         filtered_df, filtered_actors_df = get_network(selected_movies, df_movies, df_actors)
-        recommended_movies = recommend_movies(filtered_df, filtered_actors_df, selected_genres, selected_actors, selected_directors, n=10)
+        recommended_movies, cosine_sims = recommend_movies(filtered_df, filtered_actors_df, df_directors,
+                                                            selected_genres, selected_actors, selected_directors, n=10)
         # filtered_df = filtered_df.head(10)
         # return dash_table.DataTable(filtered_df.to_dict('records'), [{"name": i, "id": i} for i in filtered_df.columns])
         
@@ -209,8 +211,8 @@ def display_output(n_clicks, selected_movies, ratings, selected_actors,  # pylin
         fig_bar = px.bar(
             recommended_movies,
             x='primaryTitle',
-            y=recommended_movies.index,  # Using index as y value
-            labels={'primaryTitle': 'Movie Title', 'index': 'Recommendation Rank'},
+            y=cosine_sims,  # Using cosine similarity as y value
+            labels={'primaryTitle': 'Movie Title', 'y': 'Cosine Similarity'},
             title='Recommended Movies'
         )
         
