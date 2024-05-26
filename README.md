@@ -13,11 +13,12 @@ This project aims to enhance movie-watching experience by offering personalized 
 
 ## Usage
 
-Make sure (1) virtualenv is installed and (2) activate the virtual environment before beginning: 
+Make sure (1) virtualenv is installed, (2) create a virtual environment, and (3) activate the virtual environment before beginning: 
 1. `pip show virtualenv`/`which virtualenv`, and `pip install virtualenv` if required
-2. `source venv/bin/activate`  
+2. `virtualenv venv`
+3. `source venv/bin/activate`  
 Then, install the necessary dependencies from within the environment: 
-3. `pip install -r requirements.txt`  
+4. `pip install -r requirements.txt`  
 
 This project functions as a Dash app. To get started, simply run `python3 app.py` and visit `127.0.0.1:8050` or `localhost:8050` in a web browser.  
 
@@ -28,4 +29,4 @@ In the second week, additional development included `get_data.py`, intended to d
 In the third week we completed our recommendation algorithm and included two plots to visualize the recommended movies. First we show the Top 10 
 recommendations in a bar plot with their indices in the DataFrame. The recommendations go from place 1 (left) to place 10 (right) independent of the size of the bar. We still would like to exchange the index on the y-axis with the actual value given to each movie by the cosine similarities from our recommendation algorithm. We also included a pie chart to show the distribution of genres of the Top 10 recommended movies.
 
-In the fourth week we initialized a virtual environment for the project to containerize the dependencies of the app away from the user's main environment, and included instructions how to start the container.
+In the fourth week we initialized a virtual environment for the project to containerize the dependencies of the app away from the user's main environment, and included instructions how to start the container and install the required packages.
