@@ -13,7 +13,11 @@ This project aims to enhance movie-watching experience by offering personalized 
 
 ## Usage
 
-Make sure to check dependencies before beginning: `pip install -r requirements.txt`  
+Make sure (1) virtualenv is installed and (2) activate the virtual environment before beginning: 
+1. `pip show virtualenv`/`which virtualenv`, and `pip install virtualenv` if required
+2. `source venv/bin/activate`  
+Then, install the necessary dependencies from within the environment: 
+3. `pip install -r requirements.txt`  
 
 This project functions as a Dash app. To get started, simply run `python3 app.py` and visit `127.0.0.1:8050` or `localhost:8050` in a web browser.  
 
@@ -22,4 +26,6 @@ For the first week, we created the inital app and its search functionality. It c
 In the second week, additional development included `get_data.py`, intended to download the relevant database via IMDb. Hence, the input of the user will be used to make recommendations based on this data set. The data obtained from running the script are provided in the `data` folder as compressed tsv files. We also created movie recommendation scripts to be invoked by the app to recommend movies based on the input data.
 
 In the third week we completed our recommendation algorithm and included two plots to visualize the recommended movies. First we show the Top 10 
-recommendations in a bar plot with their indices in the DataFrame. The recommendations go from place 1 (left) to place 10 (right) independent of the size of the bar. We still would like to exchange the index on the y-axis whit the actual value given to each movie by the cosine similarities from our recommendation algorithm. We also included a pie chart to show the distribution of genres of the Top 10 recommended movies.
+recommendations in a bar plot with their indices in the DataFrame. The recommendations go from place 1 (left) to place 10 (right) independent of the size of the bar. We still would like to exchange the index on the y-axis with the actual value given to each movie by the cosine similarities from our recommendation algorithm. We also included a pie chart to show the distribution of genres of the Top 10 recommended movies.
+
+In the fourth week we initialized a virtual environment for the project to containerize the dependencies of the app away from the user's main environment, and included instructions how to start the container.
